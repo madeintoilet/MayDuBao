@@ -150,17 +150,23 @@ contract DuBaoTuongLai
     }
     
     // Goi ham nay de gan cac doi tuong ung tu danh sach lua chon vao phien du bao gan voi mot tran dau
-    function CapNhatLuaChonVaoPhienDuBao(uint MaPhienDuBao,uint16[] memory ciDanhSachLuaChon) public
+    function CapNhatLuaChonVaoPhienDuBao(uint intMaPhienDuBao,uint16[] memory ciDanhSachLuaChon) public
     {
+        //Kiem tra xem ma phien co hop le hay khong
+        PhienDuBao storage objPhien = DanhSachPhien[intMaPhienDuBao];
+        require(objPhien.MaPhien == intMaPhienDuBao,'Ma phien khong hop le');
+        //Kiem tra trang thai phien du bao
+        require(objPhien.TrangThai == enTrangThaiPhien.Moi);
         // Bo sung ma lua chon vao danh sach lua chon cua phien
+        objPhien.LuaChon = ciDanhSachLuaChon;
+        objPhien.TrangThai = ciDanhSachLuaChon.length == 2 ? enTrangThaiPhien.DangNhanPhieu : enTrangThaiPhien.Moi;
     }
     
     // Dang ky tham gia du bao, moi nguoi duoc dang ky tham gia 1 lan duy nhat vao mot phien du bao 
     function DangKyThamGiaDuBao(uint48 intMaPhienDuBao, string memory strHoTen, string memory strDienThoai) public 
     {
         //Kiem tra xem ma phien co hop le hay khong
-        PhienDuBao memory objPhien = DanhSachPhien[intMaPhienDuBao];
-        require(objPhien.MaPhien == intMaPhienDuBao,'Ma phien khong hop le'); 
+        require(DanhSachPhien[intMaPhienDuBao].MaPhien == intMaPhienDuBao,'Ma phien khong hop le'); 
         // Kiem tra xem tai khoan msg.sender co trong danh sach tham gia chua
         NguoiThamGia memory objNguoiThamGia = DanhSachThamGia[intMaPhienDuBao][msg.sender];
         require(bytes(objNguoiThamGia.HoTen).length != 0); 
@@ -170,7 +176,7 @@ contract DuBaoTuongLai
                                                                       DanhSachPhieu: new uint16[](0),
                                                                       DaQuyetToanXong: false 
                                                                     });
-        //Air drop
+        //Air drop token
         // Chuyen 0.01 ETH de chay contract nay
         
         // Chuyen 150 NGIN ban dau de tao cac phieu du bao
