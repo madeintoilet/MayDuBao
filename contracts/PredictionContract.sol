@@ -1,6 +1,8 @@
 
 pragma solidity >=0.4.0; 
 
+/// Day la branch Nhom3_Backend
+
 contract DuBaoTuongLai
 {
     uint public TongSoPhienDuBao;
@@ -54,7 +56,7 @@ contract DuBaoTuongLai
         string MoTa;
         enTrangThaiLuaChon TrangThai;
     }
-    
+
     mapping(uint => LuaChon) public DanhSachLuaChon; // MaLuaChon => Mo Ta lua chon & trang thai
     
     struct NguoiThamGia
@@ -82,10 +84,10 @@ contract DuBaoTuongLai
     }
     
     // Goi ham nay de tao phien du bao cho moi tran dau
-    function TaoPhienDuBao(string strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien) public returns (uint MaPhienDuBao)    {
+    function TaoPhienDuBao(string memory strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien) public returns (uint MaPhienDuBao)    {
         // Tang tong so phien va cap ma cho phien du bao
         TongSoPhienDuBao += 1;
-        uint MaPhienDuBao = bytes6(keccak256(block.timestamp + TongSoPhienDuBao));
+        bytes6 MaPhienDuBao = bytes6(keccak256(block.timestamp + TongSoPhienDuBao));
         
         // Tao doi tuong phien du bao
         
