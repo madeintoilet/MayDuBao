@@ -8,41 +8,29 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <style>
-        body {
-            background-image: url(images/bg.png);
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-        main {
-            padding: 10rem 0 3rem;
-        }
-        .bg-opa-30 {
-            background-color: rgba(255, 255, 255, .3);
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
   </head>
   <body>
       <main>
-        <header class="p-5">
-            <h1 class="text-center text-white">Chương trình phân phối blockchain token <span class="text-warning"><strong>NGIN</strong></span></h1>
+        <header class="py-5">
+            <h1 class="text-center text-white"><span class="text-warning"><strong>NGIN</strong></span> token program</h1>
         </header>
-        <div class="container py-5">
-            <div class="row py-2">
-                <div class="col-3">
+        <div class="container py-2">
+            <div class="row">
+                <div class="col-3 text-right">
                     <label class="text-white" for="txtMaNhanThuong">Mã nhận thưởng</label>
                 </div>
                 <div class="col-3">
-                    <input type="text" class="form-control bg-warning" name="txtMaNhanThuong" id="txtMaNhanThuong" placeholder="Mã nhận thưởng">
+                    <input type="text" class="form-control bg-warning bg-yellow border border-warning" name="txtMaNhanThuong" id="txtMaNhanThuong" placeholder="Mã nhận thưởng">
                 </div>
-                <div class="col-6">&nbsp;</div>
+                <div class="col-6"></div>
             </div>
             <div class="row py-2">
-                <div class="col-3">
+                <div class="col-3 text-right">
                     <label class="text-white" for="txtDiaChiVi">Địa chỉ ví Metamask của bạn</label>
                 </div>
                 <div class="col-6">
-                    <input type="text" class="form-control bg-warning" name="txtDiaChiVi" id="txtDiaChiVi" placeholder="0x123Abc...">
+                    <input type="text" class="form-control bg-warning bg-yellow-dark border border-warning text-light" name="txtDiaChiVi" id="txtDiaChiVi" placeholder="0x123Abc...">
                 </div>
                 <div class="col-3">
                     <button type="button" name="btnNhanToken" id="btnNhanToken" class="btn btn-primary">Nhận token</button>
@@ -51,8 +39,22 @@
             <div class="row py-3">
                 <div class="col-3"></div>
                 <div class="col-6">
-                    <a name="" id="" href="#" class="btn btn-warning btn-block text-light w-100 border border-warning bg-opa-30" role="button">Hướng dẫn cài đặt Metamask</a>
-                    <a name="" id="" href="#" class="btn btn-warning btn-block text-light w-100 border border-warning bg-opa-30" role="button">Hướng dẫn thêm token NGIN vào Metamask</a>
+                    <a name="" id="" href="https://bitcoincuatoi.com/huong-dan-metamask/" class="btn btn-warning btn-block text-light w-100 border border-warning bg-opa-30" role="button">Hướng dẫn cài đặt Metamask</a>
+                    <a name="" id="" href="addtoken.html" class="btn btn-warning btn-block text-light w-100 border border-warning bg-opa-30" role="button">Hướng dẫn thêm token NGIN vào Metamask</a>
+                </div>
+                <div class="col-3"></div>
+            </div>
+            <div class="row py-3">
+                <div class="col-3"></div>
+                <div class="col-6">
+                    <div id="alertNotReady" class="alert alert-danger" role="alert" style="display: none;">
+                        <p>
+                            Cảm ơn bạn đã truy cập. Chương trình có hiệu lực bắt đầu từ 8h sáng ngày 09/07/2021. Xin vui lòng quay lại vào sáng mai!
+                        </p>
+                        <p>
+                            Hãy cài đặt Metamask sẵn sàng, thêm token theo địa chỉ contract được cung cấp trên trang này vào sáng mai và nhận thưởng!
+                        </p>
+                    </div>
                 </div>
                 <div class="col-3"></div>
             </div>
@@ -66,7 +68,7 @@
     <script>
         $(document).ready(function() {
             $('#btnNhanToken').on('click', function() {
-                console.log("Button btnNhanToken is clicked");
+                $('#alertNotReady').show();
             })
         })
     </script>
