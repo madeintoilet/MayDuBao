@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>NGIN Token program</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        body {
+            background-image: url(images/bg.png);
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        main {
+            padding: 10rem 0 3rem;
+        }
+        .bg-opa-30 {
+            background-color: rgba(255, 255, 255, .3);
+        }
+    </style>
+  </head>
+  <body>
+      <main>
+        <header class="p-5">
+            <h1 class="text-center text-white">Chương trình phân phối blockchain token <span class="text-warning"><strong>NGIN</strong></span></h1>
+        </header>
+        <div class="container py-5">
+            <div class="row py-2">
+                <div class="col-3">
+                    <label class="text-white" for="txtMaNhanThuong">Mã nhận thưởng</label>
+                </div>
+                <div class="col-3">
+                    <input type="text" class="form-control bg-warning" name="txtMaNhanThuong" id="txtMaNhanThuong" placeholder="Mã nhận thưởng">
+                </div>
+                <div class="col-6">&nbsp;</div>
+            </div>
+            <div class="row py-2">
+                <div class="col-3">
+                    <label class="text-white" for="txtDiaChiVi">Địa chỉ ví Metamask của bạn</label>
+                </div>
+                <div class="col-6">
+                    <input type="text" class="form-control bg-warning" name="txtDiaChiVi" id="txtDiaChiVi" placeholder="0x123Abc...">
+                </div>
+                <div class="col-3">
+                    <button type="button" name="btnNhanToken" id="btnNhanToken" class="btn btn-primary">Nhận token</button>
+                </div>
+            </div>
+            <div class="row py-3">
+                <div class="col-3"></div>
+                <div class="col-6">
+                    <a name="" id="" href="#" class="btn btn-warning btn-block text-light w-100 border border-warning bg-opa-30" role="button">Hướng dẫn cài đặt Metamask</a>
+                    <a name="" id="" href="#" class="btn btn-warning btn-block text-light w-100 border border-warning bg-opa-30" role="button">Hướng dẫn thêm token NGIN vào Metamask</a>
+                </div>
+                <div class="col-3"></div>
+            </div>
+        </div>
+      </main>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function() {
+            $('#btnNhanToken').on('click', function() {
+                console.log("Button btnNhanToken is clicked");
+            })
+        })
+    </script>
+  </body>
+</html>

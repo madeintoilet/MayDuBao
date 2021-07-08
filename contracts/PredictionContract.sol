@@ -1,10 +1,10 @@
-
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.4.0; 
+pragma experimental ABIEncoderV2;
 
 /// Day la branch Nhom3_Backend
 
-contract DuBaoTuongLai
-{
+contract DuBaoTuongLai {
     uint public TongSoPhienDuBao;
     uint public TongSoLanDuBao;  // Tong so lan du bao cho tat ca cac phien
     uint public TongGiaTriDuBao; // Tong gia tri du bao cho tat ca cac phien
@@ -44,7 +44,7 @@ contract DuBaoTuongLai
     mapping(bytes6 => mapping(uint => PhieuDuBao)) private DanhSachPhieuDuBao; 
 
     struct TongHopKetQua {
-        uint TongGiaTri;
+        uint TongGiaTri; 
         uint TongSoPhieu;
     }
 
@@ -59,8 +59,7 @@ contract DuBaoTuongLai
 
     mapping(uint => LuaChon) public DanhSachLuaChon; // MaLuaChon => Mo Ta lua chon & trang thai
     
-    struct NguoiThamGia
-    {
+    struct NguoiThamGia {
         string HoTen;
         string DienThoai;
         uint16[] DanhSachPhieu;
@@ -80,14 +79,14 @@ contract DuBaoTuongLai
         TongSoLanDuBao = 0;
         TongGiaTriDuBao = 0;
         TrangThaiHoatDong = enTrangThaiHoatDong.DangHoatDong;
-        NguoiTao = msg.sender;
+        NguoiTao = payable(msg.sender);
     }
     
     // Goi ham nay de tao phien du bao cho moi tran dau
     function TaoPhienDuBao(string memory strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien) public returns (uint MaPhienDuBao)    {
         // Tang tong so phien va cap ma cho phien du bao
-        TongSoPhienDuBao += 1;
-        bytes6 MaPhienDuBao = bytes6(keccak256(block.timestamp + TongSoPhienDuBao));
+        // TongSoPhienDuBao += 1;
+        // bytes6 MaPhienDuBao = bytes6(keccak256(block.timestamp + TongSoPhienDuBao));
         
         // Tao doi tuong phien du bao
         
@@ -96,12 +95,12 @@ contract DuBaoTuongLai
     }
     
     // Goi ham nay de dang ky danh sach cac doi bong
-    function DangKyLuaChon(string strMoTaLuaChon) returns (uint16 MaLuaChon) {
+    function DangKyLuaChon(string memory strMoTaLuaChon) public returns (uint16 MaLuaChon) {
         // Bo sung lua chon vao danh sach va tra ve ma lua chon moi
     }
     
     // Goi ham nay de gan cac doi tuong ung tu danh sach lua chon vao phien du bao gan voi mot tran dau
-    function CapNhatLuaChonVaoPhienDuBao(uint MaPhienDuBao,uint16[] ciDanhSachLuaChon)
+    function CapNhatLuaChonVaoPhienDuBao(uint MaPhienDuBao, uint16[] memory ciDanhSachLuaChon) public
     {
         // Bo sung ma lua chon vao danh sach lua chon cua phien
     }
@@ -119,7 +118,7 @@ contract DuBaoTuongLai
     }
     
     // Goi ham nay de nop phieu du bao vao mot PHIEN DU BAO nao do 
-    function NopPhieuDuBao(PhieuDuBao objPhieuDuBao) public 
+    function NopPhieuDuBao(PhieuDuBao memory objPhieuDuBao) public 
     {
         // Kiem tra so du XU cua nguoi gui phieu msg.sender dam bao co du tien de tham gia, so tien tham gia >= 10
         
@@ -158,13 +157,19 @@ contract DuBaoTuongLai
     }
     
     // Goi ham nay de dang ky tai khoan xac nhan ket qua THUC TE
-    function DangKyXacNhanKetQua(address adNguoiXacNhan) public
-    {
+    function DangKyXacNhanKetQua(address adNguoiXacNhan) public {
         // Kiem tra chi cho phep nguoi tao CONTRACT moi duoc phep goi ham nay
+        require(msg.sender == NguoiTao, "Chi co Admin moi duoc phep thuc hien thao tac nay");
+
         // Kiem tra dam bao nguoi tham gia khong the XAC NHAN KET QUA 
+        // mapping(uint => mapping(address => NguoiThamGia)) DanhSachThamGia; // MaPhien -> Danh sach nguoi:Thoi Gian tham gia
+        address 
+
         // Kiem tra nguoi xac nhan da co trong danh sach chua 
+        
         // Tang SoNguoiXacNhanKetQua len 1
         // Cap nhat nguoi xac nhan vao danh sach TaiKhoanXacNhanKetQua  
+        // Phat event thong bao dang ky xac nhan ket qua thanh cong
     }
     
     // Tai khoan nam trong danh sach xac nhan ket qua se goi ham nay de XAC NHAN KET QUA
