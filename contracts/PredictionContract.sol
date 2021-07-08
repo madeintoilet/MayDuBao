@@ -9,9 +9,9 @@ contract DuBaoTuongLai {
     uint public TongSoLanDuBao;  // Tong so lan du bao cho tat ca cac phien
     uint public TongGiaTriDuBao; // Tong gia tri du bao cho tat ca cac phien
     
-    address payable NguoiTao;
+    address NguoiTao;
 
-    enum enTrangThaiPhien { Moi, DangNhanPhieu, NgungNhanPhieu, KetThuc }
+    enum enTrangThaiPhien { Moi, DangNhanPhieu, NgungNhanPhieu, DaXacNhanKetQua, KetThuc }
     struct PhienDuBao {
         bytes6  MaPhien;
         string  MoTa;
@@ -24,6 +24,7 @@ contract DuBaoTuongLai {
         
         uint16  SoXacNhanKetQuaToiThieu;
         uint16  SoXacNhanKetQuaHienTai;
+        uint16  KetQuaXacNhanLanCuoi;
         uint16  KetQuaCuoiCung;
         
         string  TyLeLuaChon;
@@ -40,7 +41,7 @@ contract DuBaoTuongLai {
         enTrangThaiPhieuDuBao TrangThai; 
     }
     
-    mapping(uint => PhienDuBao) private DanhSachPhien; 
+    mapping(bytes6 => PhienDuBao) private DanhSachPhien; 
     mapping(bytes6 => mapping(uint => PhieuDuBao)) private DanhSachPhieuDuBao; 
 
     struct TongHopKetQua {
@@ -75,13 +76,15 @@ contract DuBaoTuongLai {
     address[]               TaiKhoanXacNhanKetQua; 
 
     event DangKyNguoiXacNhanKetQuaThanhCong(address adNguoiXacNhan);
+    event XacNhanKetQuaThanhCong(bytes6 MaPhien, uint ThoiGian);
+    event DaChotKetQuaCuoiCung(uint ThoiGian);
 
     constructor() {
         TongSoPhienDuBao = 0;
         TongSoLanDuBao = 0;
         TongGiaTriDuBao = 0;
         TrangThaiHoatDong = enTrangThaiHoatDong.DangHoatDong;
-        NguoiTao = payable(msg.sender);
+        NguoiTao = msg.sender;
     }
     
     // Goi ham nay de tao phien du bao cho moi tran dau
@@ -179,7 +182,8 @@ contract DuBaoTuongLai {
         SoNguoiXacNhanKetQua += 1;
         
         // Cap nhat nguoi xac nhan vao danh sach TaiKhoanXacNhanKetQua  
-        TaiKhoanXacNhanKetQua[SoNguoiXacNhanKetQua - 1] = adNguoiXacNhan;
+        //TaiKhoanXacNhanKetQua[SoNguoiXacNhanKetQua - 1] = adNguoiXacNhan;
+        TaiKhoanXacNhanKetQua.push(adNguoiXacNhan);
 
         // Phat event thong bao dang ky xac nhan ket qua thanh cong
         emit DangKyNguoiXacNhanKetQuaThanhCong(adNguoiXacNhan);
@@ -201,28 +205,56 @@ contract DuBaoTuongLai {
         // Kiem tra dam bao intMaLuaChonLaKetQuaCuoi nam trong danh sach lua chon hop le 
         require(bytes(DanhSachLuaChon[intMaLuaChonLaKetQuaCuoi].MoTa).length > 0, "Lua chon nay khong nam trong danh sach lua chon hop le");
 
-        PhienDuBao memory _phiendubao;
-        for(uint i = 0; i < TongSoPhienDuBao; i++) {
-            if(DanhSachPhien[i].MaPhien == intMaPhienDuBao) {
-                _phiendubao = DanhSachPhien[i];
+        PhienDuBao storage objPhienDuBao = DanhSachPhien[intMaPhienDuBao];
+        
+        require(objPhienDuBao.MaPhien > 0, "Phien du bao khong hop le");
+
+        bool bTonTaiLuaChonTrongDanhSachCuaPhien = false;
+        for(uint i = 0; i < objPhienDuBao.LuaChon.length; i++) {
+            if(objPhienDuBao.LuaChon[i] == intMaLuaChonLaKetQuaCuoi) {
+                bTonTaiLuaChonTrongDanhSachCuaPhien = true;
                 break;
             }
         }
         
-        require(_phiendubao.MaPhien > 0, "Phien du bao khong hop le");
-
-        for(uint i = 0; i < _phiendubao.LuaChon.length; i++) {
-            if(_phiendubao.LuaChon[i] == intMaLuaChonLaKetQuaCuoi) {
-                break;
+        require(bTonTaiLuaChonTrongDanhSachCuaPhien == true);
+        
+        //Kiem tra SoXacNhanKetQuaHienTai cua Phien du bao, neu chua co ai xac nhan thi tang len 1
+        if(objPhienDuBao.SoXacNhanKetQuaHienTai == 0) {
+            objPhienDuBao.SoXacNhanKetQuaHienTai += 1;
+            
+            // Gan intMaLuaChonLaKetQuaCuoi vao truong KetQuaXacNhanLanCuoi cua Phien
+            objPhienDuBao.KetQuaXacNhanLanCuoi = intMaLuaChonLaKetQuaCuoi;
+        }
+        else {
+            // Nếu SoXacNhanKetQuaHienTai của Phiên lớn hơn 0, tức là đã có người xác nhận kết quả
+            // Kiểm tra KetQuaXacNhanLanCuoi có khớp với intMaLuaChonKetQuaCuoi hay không
+            if(objPhienDuBao.KetQuaXacNhanLanCuoi == intMaLuaChonLaKetQuaCuoi) {
+                // Cập nhật SoXacNhanKetQuaHienTai của Phiên tăng lên 1
+                objPhienDuBao.SoXacNhanKetQuaHienTai += 1;
+            } 
+            else {
+                // Nếu KetQuaXacNhanLanCuoi của Phiên khác với intMaLuaChonLaKetQuaCuoi 
+                // thì phải reset SoXacNhanKetQuaHienTai của Phiên về 1
+                objPhienDuBao.SoXacNhanKetQuaHienTai = 1;
+                
+                // Gán lại KetQuaXacNhanLanCuoi của Phiên với intMaLuaChonLaKetQuaCuoi
+                objPhienDuBao.KetQuaXacNhanLanCuoi = intMaLuaChonLaKetQuaCuoi;
             }
         }
-
-        // Tang so xac nhan ket qua HIEN TAI trong PHIEN DU BAO len 1 
-        _phiendubao.SoXacNhanKetQuaHienTai += 1;
-
+        
+        // Phát event Xác nhận kết quả thành công
+        emit XacNhanKetQuaThanhCong(objPhienDuBao.MaPhien, block.timestamp);
+        
         // Kiem tra neu SO XAC NHAN >= SoXacNhanKetQuaToiThieu -> cap nhat KetQuaCuoiCung cho phien du bao 
-        if(_phiendubao.SoXacNhanKetQuaHienTai >= _phiendubao.SoXacNhanKetQuaToiThieu) {
-            _phiendubao.KetQuaCuoiCung = intMaLuaChonLaKetQuaCuoi;
+        if(objPhienDuBao.SoXacNhanKetQuaHienTai >= objPhienDuBao.SoXacNhanKetQuaToiThieu) {
+            objPhienDuBao.KetQuaCuoiCung = intMaLuaChonLaKetQuaCuoi;
+            
+            // Cập nhật trạng thái của Phiên thành Đã xác nhận kết quả
+            objPhienDuBao.TrangThai = enTrangThaiPhien.DaXacNhanKetQua;
+            
+            // Phát event Đã chốt kết quả cuối cùng
+            emit DaChotKetQuaCuoiCung(block.timestamp);
         }
     }
     
