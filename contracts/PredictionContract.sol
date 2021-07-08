@@ -13,7 +13,7 @@ contract DuBaoTuongLai {
 
     enum enTrangThaiPhien { Moi, DangNhanPhieu, NgungNhanPhieu, KetThuc }
     struct PhienDuBao {
-        uint    MaPhien;
+        bytes6  MaPhien;
         string  MoTa;
         uint32  TongSoPhieu;
         uint    TongGiaTri;
@@ -66,13 +66,15 @@ contract DuBaoTuongLai {
         bool   DaQuyetToanXong;
     }
 
-    mapping(uint => mapping(address => NguoiThamGia)) DanhSachThamGia; // MaPhien -> Danh sach nguoi:Thoi Gian tham gia
+    mapping(bytes6 => mapping(address => NguoiThamGia)) DanhSachThamGia; // MaPhien -> Danh sach nguoi:Thoi Gian tham gia
 
     enum enTrangThaiHoatDong { DangHoatDong, TamDung, NgungHoatDong }
     enTrangThaiHoatDong public TrangThaiHoatDong;    
 
     uint16                  SoNguoiXacNhanKetQua;
     address[]               TaiKhoanXacNhanKetQua; 
+
+    event DangKyNguoiXacNhanKetQuaThanhCong(address adNguoiXacNhan);
 
     constructor() {
         TongSoPhienDuBao = 0;
@@ -157,28 +159,71 @@ contract DuBaoTuongLai {
     }
     
     // Goi ham nay de dang ky tai khoan xac nhan ket qua THUC TE
-    function DangKyXacNhanKetQua(address adNguoiXacNhan) public {
+    function DangKyXacNhanKetQua(bytes6 intMaPhienDuBao, address adNguoiXacNhan) public {
         // Kiem tra chi cho phep nguoi tao CONTRACT moi duoc phep goi ham nay
         require(msg.sender == NguoiTao, "Chi co Admin moi duoc phep thuc hien thao tac nay");
 
         // Kiem tra dam bao nguoi tham gia khong the XAC NHAN KET QUA 
         // mapping(uint => mapping(address => NguoiThamGia)) DanhSachThamGia; // MaPhien -> Danh sach nguoi:Thoi Gian tham gia
-        address 
-
+        NguoiThamGia memory _nguoithamgia = DanhSachThamGia[intMaPhienDuBao][adNguoiXacNhan];
+        require((bytes(_nguoithamgia.HoTen).length == 0 && bytes(_nguoithamgia.DienThoai).length == 0), "Nguoi tham gia khong co quyen xac nhan ket qua du bao");
+        
         // Kiem tra nguoi xac nhan da co trong danh sach chua 
+        for(uint i = 0; i < TaiKhoanXacNhanKetQua.length; i++) {
+            if(TaiKhoanXacNhanKetQua[i] == adNguoiXacNhan) {
+                revert("Nguoi xac nhan ket qua da co trong danh sach");
+            }
+        }
         
         // Tang SoNguoiXacNhanKetQua len 1
+        SoNguoiXacNhanKetQua += 1;
+        
         // Cap nhat nguoi xac nhan vao danh sach TaiKhoanXacNhanKetQua  
+        TaiKhoanXacNhanKetQua[SoNguoiXacNhanKetQua - 1] = adNguoiXacNhan;
+
         // Phat event thong bao dang ky xac nhan ket qua thanh cong
+        emit DangKyNguoiXacNhanKetQuaThanhCong(adNguoiXacNhan);
     }
     
     // Tai khoan nam trong danh sach xac nhan ket qua se goi ham nay de XAC NHAN KET QUA
-    function XacNhanKetQua(uint16 intMaLuaChonLaKetQuaCuoi) public
+    function XacNhanKetQua(bytes6 intMaPhienDuBao, uint16 intMaLuaChonLaKetQuaCuoi) public
     {
         // Kiem tra tai khoan msg.sender nam trong danh sach nguoi xac nhan ket qua 
+        bool bTonTaiNguoiXacNhan = false;
+        for(uint i = 0; i < TaiKhoanXacNhanKetQua.length; i++) {
+            if(TaiKhoanXacNhanKetQua[i] == msg.sender) {
+                bTonTaiNguoiXacNhan = true;
+                break;
+            }
+        }
+        require(bTonTaiNguoiXacNhan, "Tai khoan nay khong hop le de xac nhan ket qua du bao");
+
         // Kiem tra dam bao intMaLuaChonLaKetQuaCuoi nam trong danh sach lua chon hop le 
+        require(bytes(DanhSachLuaChon[intMaLuaChonLaKetQuaCuoi].MoTa).length > 0, "Lua chon nay khong nam trong danh sach lua chon hop le");
+
+        PhienDuBao memory _phiendubao;
+        for(uint i = 0; i < TongSoPhienDuBao; i++) {
+            if(DanhSachPhien[i].MaPhien == intMaPhienDuBao) {
+                _phiendubao = DanhSachPhien[i];
+                break;
+            }
+        }
+        
+        require(_phiendubao.MaPhien > 0, "Phien du bao khong hop le");
+
+        for(uint i = 0; i < _phiendubao.LuaChon.length; i++) {
+            if(_phiendubao.LuaChon[i] == intMaLuaChonLaKetQuaCuoi) {
+                break;
+            }
+        }
+
         // Tang so xac nhan ket qua HIEN TAI trong PHIEN DU BAO len 1 
+        _phiendubao.SoXacNhanKetQuaHienTai += 1;
+
         // Kiem tra neu SO XAC NHAN >= SoXacNhanKetQuaToiThieu -> cap nhat KetQuaCuoiCung cho phien du bao 
+        if(_phiendubao.SoXacNhanKetQuaHienTai >= _phiendubao.SoXacNhanKetQuaToiThieu) {
+            _phiendubao.KetQuaCuoiCung = intMaLuaChonLaKetQuaCuoi;
+        }
     }
     
     // Goi ham nay khi da co ket qua chinh thuc de linh thuong
