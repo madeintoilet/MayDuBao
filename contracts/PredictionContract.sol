@@ -96,9 +96,10 @@ contract DuBaoTuongLai
 
     event evTaoPhienDuBaoRoi(bytes6 intMaPhien);
     event evDangKyLuaChonRoi(uint _maLuaChon);
-    event evCapNhapLuaChonRoi(uint _maLuaChon);
+    event evCapNhatLuaChonRoi(uint _maLuaChon);
     event evCapNhatLuaChonVaoPhienRoi();
     event evDaDangKyThamGiaThanhCong();
+    event evCapNhatTrangThaiPhienRoi();
     
     modifier KiemTraNguoiTaoGoiHam(){
         require(msg.sender == NguoiTao,'Ban khong co quyen truy cap');
@@ -140,6 +141,9 @@ contract DuBaoTuongLai
     function DangKyLuaChon(uint intMaLuaChonCapNhat,string memory strMoTaLuaChon, uint8 intTrangThaiLuaChonCapNhat) public KiemTraNguoiTaoGoiHam returns (uint intMaLuaChon) {
         //Kiem tra co phai nguoi tao hay khong? 
             //Su dung modifier
+
+        //Kiem tra strMoTaLuaChon k duoc rong
+        require(bytes(strMoTaLuaChon).length > 0,'Khong duoc bo trong mo ta');
         
         if(intMaLuaChonCapNhat == 0){
             //Tao Lua Chon moi
@@ -164,7 +168,7 @@ contract DuBaoTuongLai
             DanhSachLuaChon[intMaLuaChon] = LuaChon({   MoTa: strMoTaLuaChon,
                                                         TrangThai: enTrangThaiLuaChon(intTrangThaiLuaChonCapNhat)});
                                                         
-            emit evCapNhapLuaChonRoi(intMaLuaChon);
+            emit evCapNhatLuaChonRoi(intMaLuaChon);
         }
         return intMaLuaChon;
     }
@@ -211,6 +215,23 @@ contract DuBaoTuongLai
         
         // Chuyen 150 NGIN ban dau de tao cac phieu du bao
         emit evDaDangKyThamGiaThanhCong();
+    }
+
+    function CapNhatTrangThaiPhienDuBao(bytes6 intMaPhienDuBao, uint8 intTrangThaiPhien) public KiemTraNguoiTaoGoiHam {
+        //Kiem tra co phai nguoi tao hay khong? 
+            //Su dung modifier
+            
+        //Kiem tra trang thai co ton tai trong enTrangThaiPhien hay khong?
+        require(intTrangThaiPhien <= uint8(enTrangThaiPhien.KetThuc));
+        
+        //Kiem tra xem ma phien co hop le hay khong
+        PhienDuBao storage objPhien = DanhSachPhien[intMaPhienDuBao];
+        require(objPhien.MaPhien == intMaPhienDuBao,'Ma phien khong hop le');
+        
+        //Thay doi trang thai cho phien du bao
+        objPhien.TrangThai = enTrangThaiPhien(intTrangThaiPhien);
+        
+        emit evCapNhatTrangThaiPhienRoi();
     }
     
     // Goi ham nay de nop phieu du bao vao mot PHIEN DU BAO nao do 
