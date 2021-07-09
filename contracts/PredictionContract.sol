@@ -2,9 +2,33 @@
 pragma solidity >=0.4.0; 
 pragma experimental ABIEncoderV2;
 
-/// Day la branch Nhom3_Backend
+/// Day la branch Nhom4_Backend
+interface IERC20 {
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address recipient, uint256 amount) external returns (bool);
+
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
 
 contract DuBaoTuongLai {
+    IERC20 public NganHang; // be4
+
     uint public TongSoPhienDuBao;
     uint public TongSoLanDuBao;  // Tong so lan du bao cho tat ca cac phien
     uint public TongGiaTriDuBao; // Tong gia tri du bao cho tat ca cac phien
@@ -49,7 +73,7 @@ contract DuBaoTuongLai {
         uint TongSoPhieu;
     }
 
-    mapping(uint => mapping(uint => TongHopKetQua)) TongHopKetQuaPhien;   // MaPhien -> TongHop(MaLuaChon -> TongHopKetQua)
+    mapping(bytes6 => mapping(uint => TongHopKetQua)) TongHopKetQuaPhien;   // MaPhien -> TongHop(MaLuaChon -> TongHopKetQua) // be4
 
     enum enTrangThaiLuaChon {DangSuDung, HuyBo}
     struct LuaChon {
@@ -80,6 +104,7 @@ contract DuBaoTuongLai {
     event DaChotKetQuaCuoiCung(uint ThoiGian);
 
     constructor() {
+        NganHang = IERC20(0x1f0C1F1F1dd9E0f1Cbb40ea53FfC039e6A9e1C7F); // be4
         TongSoPhienDuBao = 0;
         TongSoLanDuBao = 0;
         TongGiaTriDuBao = 0;
@@ -259,29 +284,116 @@ contract DuBaoTuongLai {
     }
     
     // Goi ham nay khi da co ket qua chinh thuc de linh thuong
+    event DaQuyetToanXongRoi(address adNguoiThamGia, uint GiaTriQuyetToan); // be4
+    
     function KetThucPhienDuBaoCuaToi(bytes6 intMaPhienDuBao,address adTaiKhoanQuyetToan) public
     {
         // Neu adTaiKhoanQuyetToan==address(0) -> quyet toan cho msg.sender
+        // require( adTaiKhoanQuyetToan == address(0)); // case 1: trường hợp người chia tiền, chia cho tắt cả phiếu thắng dự báo
+        if(adTaiKhoanQuyetToan == address(0)) {
+            adTaiKhoanQuyetToan = msg.sender;
+        }
+        
         // Lay doi tuong PhienDuBao tu DanhSachPhien
-        // Kiem tra thoi gian >= ThoiHanKetThuc 
+        PhienDuBao storage objPhienDuBao = DanhSachPhien[intMaPhienDuBao];
+        
+        // Kiem tra thoi gian > ThoiHanKetThuc 
+        require(block.timestamp > objPhienDuBao.ThoiHanKetThuc);
+        
         // Kiem tra SoXacNhanKetQuaHienTai >= SoXacNhanKetQuaToiThieu va KetQuaCuoiCung da cap nhat
+        require(objPhienDuBao.TrangThai == enTrangThaiPhien.DaXacNhanKetQua);
         
-        // Tinh tong GIA TRI CO THE CHIA (cong het TongHopKetQua cua cac LuaChon sai lai) 
-        // Tong gia tri BEN THANG CUOC = Gia tri tuong ung voi KetQuaCuoiCung 
+        // Tinh tong GIA TRI CO THE CHIA (cong het TongHopKetQua cua cac LuaChon sai lai)
+        // Tong gia tri BEN THANG CUOC = Gia tri tuong ung voi KetQuaCuoiCung
+  
+        uint TongGiaTriThang;
+        uint GiaTriCoTheChia; // TongGiaTriThua
         
+        for (uint8 i=0;i < objPhienDuBao.LuaChon.length; i++) {  // mảng LuaChon truy vấn tuyến tính được
+            TongHopKetQua storage objTongHopKetQua = TongHopKetQuaPhien[intMaPhienDuBao][objPhienDuBao.LuaChon[i]];
+            
+            if(objPhienDuBao.KetQuaCuoiCung == objPhienDuBao.LuaChon[i]) {
+                TongGiaTriThang += objTongHopKetQua.TongGiaTri;
+            } else {
+                GiaTriCoTheChia += objTongHopKetQua.TongGiaTri;
+            }
+        }
+         
         // Lay tat ca cac PHIEU ma tai khoan gui den msg.sender da gui vao contract
-        // Neu day la phieu DU DOAN DUNG   
-                // Cong gia tri phieu vao phan GIA TRI DOAN DUNG
-                // Cong gia tri phieu va TONG TIEN TRA LAI 
+        NguoiThamGia storage objNguoiThamGia = DanhSachThamGia[intMaPhienDuBao][msg.sender];
+
+        uint GiaTriDoanDung; // số tiền đoán đúng
+        // uint TongTienTraLai; // số tiền đoán đúng
         
-        // Tinh TY LE CHIA = GIA TRI DOAN DUNG / GIA TRI BEN THANG CUOC
+        for(uint8 i=0; i < objNguoiThamGia.DanhSachPhieu.length; i++) {
+            PhieuDuBao storage objPhieuDuBao = DanhSachPhieuDuBao[intMaPhienDuBao][i];
+            
+            if(objPhieuDuBao.GiaTriDuBao != 0) { // Nếu phieuDuBao Tồn tại thì
+                // Neu day la phieu DU DOAN DUNG 
+                if(objPhieuDuBao.KetQuaDuBao == objPhienDuBao.KetQuaCuoiCung) {
+                    // Cong gia tri phieu vao phan GIA TRI DOAN DUNG
+                    GiaTriDoanDung += objPhieuDuBao.GiaTriDuBao;
+                    // Cong gia tri phieu va TONG TIEN TRA LAI = GiaTriDoanDung
+                }
+            }
+        }
+          
+        
         // TONG TIEN TRA THUONG = GIA TRI CO THE CHIA * TY LE CHIA 
+        uint TongTienTraThuong = MulDiv(GiaTriCoTheChia,GiaTriDoanDung,TongGiaTriThang);
+        
         // Tinh GiaTriQuyetToan = TONG TIEN TRA THUONG + TONG TIEN TRA LAI
+        uint GiaTriQuyetToan = GiaTriDoanDung + TongTienTraThuong ; // TongTienTraLai = GiaTriDoanDung
+        
         // Neu  GiaTriQuyetToan >= GiaTriConLai trong PhienDuBao thi chuyen het gia tri con lai 
-        // Chuyen khoan token tra thuong cho tai khoan REDEEM = GiaTriQuyetToan
-             
-        // Cap nhat trang thai da quyet toan Xong cho tai khoan nguoi tham gia
-        // Cap nhat gia tri con lai tru bot gia tri da quyet toan 
-        // Cap nhat trang thai cho PhienDuBao neu GiaTriConLai = 0 
+        if(GiaTriQuyetToan >= objPhienDuBao.GiaTriConLai) {
+            NganHang.transfer(msg.sender, objPhienDuBao.GiaTriConLai);
+            
+            // Cap nhat trang thai da quyet toan Xong cho tai khoan nguoi tham gia
+            objNguoiThamGia.DaQuyetToanXong = true;
+            
+            // Cap nhat gia tri con lai tru bot gia tri da quyet toan 
+            objPhienDuBao.GiaTriConLai = 0;
+            
+            // Cap nhat trang thai cho PhienDuBao neu GiaTriConLai = 0 
+            objPhienDuBao.TrangThai = enTrangThaiPhien.KetThuc;
+        } else {
+            // Chuyen khoan token tra thuong cho tai khoan REDEEM = GiaTriQuyetToan
+            NganHang.transfer(msg.sender, GiaTriQuyetToan);
+            
+            // Cap nhat trang thai cho GiaTriConLai
+            objPhienDuBao.GiaTriConLai -= GiaTriQuyetToan;
+        }
+        emit DaQuyetToanXongRoi(msg.sender,GiaTriQuyetToan);
+    }
+    
+    function Mul (uint x, uint y) private pure returns (uint l, uint h)
+    {
+      uint mm = mulmod (x, y, uint (-1));
+      l = x * y;
+      h = mm - l;
+      if (mm < l) h -= 1;
+    }
+
+    function MulDiv (uint x, uint y, uint z) private pure returns (uint) {
+        (uint l, uint h) = Mul(x, y);
+        require (h < z);
+        uint mm = mulmod (x, y, z);
+          if (mm > l) h -= 1;
+          l -= mm;
+        uint pow2 = z & -z;
+          z /= pow2;
+          l /= pow2;
+          l += h * ((-pow2) / pow2 + 1);
+        uint r = 1;
+          r *= 2 - z * r;
+          r *= 2 - z * r;
+          r *= 2 - z * r;
+          r *= 2 - z * r;
+          r *= 2 - z * r;
+          r *= 2 - z * r;
+          r *= 2 - z * r;
+          r *= 2 - z * r;
+        return l * r;
     }
 }
