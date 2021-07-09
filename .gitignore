@@ -10,5 +10,8 @@ build
 # binaries
 bin
 
+# screens
+screens
+
 # environment variables
 .env
