@@ -1,17 +1,60 @@
-
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.4.0; 
 
-contract DuBaoTuongLai
-{
-    uint public TongSoPhienDuBao;
-    uint public TongSoLanDuBao;  // Tong so lan du bao cho tat ca cac phien
-    uint public TongGiaTriDuBao; // Tong gia tri du bao cho tat ca cac phien
-    
-    address payable NguoiTao;
+interface IERC20 {
+    /**
+     * @dev Returns the amount of tokens in existence.
+     */
+    function totalSupply() external view returns (uint256);
 
-    enum enTrangThaiPhien { Moi, DangNhanPhieu, NgungNhanPhieu, KetThuc }
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address recipient, uint256 amount) external returns (bool);
+
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+contract DuBaoTuongLai {
+
+    // Tổng số phiếu dự báo
+    uint    public  TongSoPhienDuBao;
+    // Tổng số lần dự báo
+    uint    public  TongSoLanDuBao;
+    // Tổng giá trị dự báo cho tất cả các phiên
+    uint    public  TongGiaTriDuBao;
+    // Người tạo ra phiên dự báo
+    address NguoiTao;
+    // Số người xác nhận kết quả khi 1 phiên kết thúc
+    uint16          SoNguoiXacNhanKetQua;
+    // Các tài khoản tham gia xác nhận kết quả
+    address[]       TaiKhoanXacNhanKetQua;
+
+    IERC20 public KhoTien;
+    address constant public DiaChiNGIN = 0xFcF3269B7b908D1766c65176c4ff7bD6b1D7553E;
+
+    // Trạng thái hoạt động của contract
+    enum enTrangThaiHoatDong { DangHoatDong, TamDung, NgungHoatDong }
+    enTrangThaiHoatDong public TrangThaiHoatDong;  
+
+    // Lựa chọn đại diện cho đội
+    enum enTrangThaiLuaChon {DangSuDung, HuyBo}
+    struct LuaChon {
+        string MoTa;
+        enTrangThaiLuaChon TrangThai;
+    }
+
+    // Phiên lựa chọn đại diện cho trận đấu
+    enum enTrangThaiPhien { Moi, DangNhanPhieu, NgungNhanPhieu, DaXacNhan,KetThuc }
     struct PhienDuBao {
-        uint    MaPhien;
+        bytes6    MaPhien;
         string  MoTa;
         uint32  TongSoPhieu;
         uint    TongGiaTri;
@@ -22,6 +65,7 @@ contract DuBaoTuongLai
         
         uint16  SoXacNhanKetQuaToiThieu;
         uint16  SoXacNhanKetQuaHienTai;
+        uint16  KetQuaXacNhanCuoiCung;
         uint16  KetQuaCuoiCung;
         
         string  TyLeLuaChon;
@@ -29,49 +73,40 @@ contract DuBaoTuongLai
         enTrangThaiPhien TrangThai;        
     }
 
+    // Phiếu dự báo đại diện cho vé
     enum enTrangThaiPhieuDuBao { HieuLuc, HetHieuLuc }
     struct PhieuDuBao {
-        uint MaPhienDuBao;
+        bytes6 MaPhienDuBao;
         uint KetQuaDuBao;
         uint GiaTriDuBao; // tinh bang XU = 1 ETH
         uint ThoiGian;
         enTrangThaiPhieuDuBao TrangThai; 
     }
     
-    mapping(uint => PhienDuBao) private DanhSachPhien; 
-    mapping(bytes6 => mapping(uint => PhieuDuBao)) private DanhSachPhieuDuBao; 
-
+    // Tổng hợp kết quả theo phiên và theo lựa chọn
     struct TongHopKetQua {
         uint TongGiaTri;
         uint TongSoPhieu;
     }
 
-    mapping(uint => mapping(uint => TongHopKetQua)) TongHopKetQuaPhien;   // MaPhien -> TongHop(MaLuaChon -> TongHopKetQua)
-
-    enum enTrangThaiLuaChon {DangSuDung, HuyBo}
-    struct LuaChon {
-        // uint16 MaLuaChon;
-        string MoTa;
-        enTrangThaiLuaChon TrangThai;
-    }
-    
-    mapping(uint => LuaChon) public DanhSachLuaChon; // MaLuaChon => Mo Ta lua chon & trang thai
-    
-    struct NguoiThamGia
-    {
+    // Người tham gia
+    struct NguoiThamGia {
         string HoTen;
         string DienThoai;
-        uint16[] DanhSachPhieu;
+        uint32[] DanhSachPhieu;
         bool   DaQuyetToanXong;
     }
 
-    mapping(uint => mapping(address => NguoiThamGia)) DanhSachThamGia; // MaPhien -> Danh sach nguoi:Thoi Gian tham gia
-
-    enum enTrangThaiHoatDong { DangHoatDong, TamDung, NgungHoatDong }
-    enTrangThaiHoatDong public TrangThaiHoatDong;    
-
-    uint16                  SoNguoiXacNhanKetQua;
-    address[]               TaiKhoanXacNhanKetQua; 
+    // Danh sách phiên dự báo
+    mapping(bytes6 => PhienDuBao) private DanhSachPhien;
+    // Danh sách phiếu dự báo 
+    mapping(bytes6 => mapping(uint24 => PhieuDuBao)) private DanhSachPhieuDuBao; 
+    // Danh sách tổng hợp kết quả theo phiên và theo lựa chọn
+    mapping(bytes6 => mapping(uint => TongHopKetQua)) TongHopKetQuaPhien;   // MaPhien -> TongHop(MaLuaChon -> TongHopKetQua)
+    //Danh sách các lựa chọn
+    mapping(uint => LuaChon) public DanhSachLuaChon; // MaLuaChon => Mo Ta lua chon & trang thai
+    // Danh sách người tham gia được map theo địac chỉ
+    mapping(bytes6 => mapping(address => NguoiThamGia)) DanhSachThamGia; // MaPhien -> DiaChiNguoiThamGia: NguoiThamGia 
 
     constructor() {
         TongSoPhienDuBao = 0;
@@ -79,80 +114,135 @@ contract DuBaoTuongLai
         TongGiaTriDuBao = 0;
         TrangThaiHoatDong = enTrangThaiHoatDong.DangHoatDong;
         NguoiTao = msg.sender;
+        KhoTien = IERC20(DiaChiNGIN);
     }
     
-    // Goi ham nay de tao phien du bao cho moi tran dau
-    function TaoPhienDuBao(string strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien) public returns (uint MaPhienDuBao)    {
-        // Tang tong so phien va cap ma cho phien du bao
+    // Gọi hàm này để tạo một phiên dự báo trận đấu
+    function TaoPhienDuBao(string memory strMoTaPhien,
+                           uint dtThoiHanKetThucNopPhieu, 
+                           uint dtThoiHanKetThucPhien)
+                           public returns (bytes6 intMaPhienDuBao)    {
+        
+        // Tăng tổng số phiên dự báo
         TongSoPhienDuBao += 1;
-        uint MaPhienDuBao = bytes6(keccak256(block.timestamp + TongSoPhienDuBao));
+
+        // Tạo mã phiên dự báo
+        // intMaPhienDuBao = bytes6(keccak256(block.timestamp + TongSoPhienDuBao));
         
-        // Tao doi tuong phien du bao
+        // Tạo đối tượng phiên dự báo
         
-        // Cho vao mapping danh sach phien du bao
-        
-    }
-    
-    // Goi ham nay de dang ky danh sach cac doi bong
-    function DangKyLuaChon(string strMoTaLuaChon) returns (uint16 MaLuaChon) {
-        // Bo sung lua chon vao danh sach va tra ve ma lua chon moi
-    }
-    
-    // Goi ham nay de gan cac doi tuong ung tu danh sach lua chon vao phien du bao gan voi mot tran dau
-    function CapNhatLuaChonVaoPhienDuBao(uint MaPhienDuBao,uint16[] ciDanhSachLuaChon)
-    {
-        // Bo sung ma lua chon vao danh sach lua chon cua phien
-    }
-    
-    // Dang ky tham gia du bao, moi nguoi duoc dang ky tham gia 1 lan duy nhat vao mot phien du bao 
-    function DangKyThamGiaDuBao(bytes6 intMaPhienDuBao) public 
-    {
-        // Kiem tra xem tai khoan msg.sender co trong danh sach tham gia chua
-        
-        // Neu chua co tai khoan nay thi bo sung vao danh sach tham gia va AIR DROP token 
-        // Chuyen 0.01 ETH de chay contract nay
-        
-        // Chuyen 150 NGIN ban dau de tao cac phieu du bao
+        // Cho vào danh sách mapping phiên dự báo
         
     }
     
-    // Goi ham nay de nop phieu du bao vao mot PHIEN DU BAO nao do 
-    function NopPhieuDuBao(PhieuDuBao objPhieuDuBao) public 
-    {
-        // Kiem tra so du XU cua nguoi gui phieu msg.sender dam bao co du tien de tham gia, so tien tham gia >= 10
+    // Gọi hàm này để đăng ký các đội bóng
+    function DangKyLuaChon(string memory strMoTaLuaChon) public returns (uint16 MaLuaChon){
         
-        // Kiem tra so UY NHIEM CHI >= so tien tham gia 
+        // Bổ sung lựa chọn vào danh sách lựa chọn
+    }
+    
+    // Gọi hàm này để cập nhật các lựa chọn vào phiên dự báo
+    function CapNhatLuaChonVaoPhienDuBao(uint MaPhienDuBao,uint16[] memory ciDanhSachLuaChon) public{
+        // Bổ sung mảng lựa chọn vào danh sách lựa chọn trong phiên dự báo
+    }
+    
+    // Đăng ký tham gia dự báo, mỗi người được đăng ký tham gia một lần trong 1 phiên
+    function DangKyThamGiaDuBao(bytes6 intMaPhienDuBao) public{
+        // Kiểm tra xem msg.sender đã có trong danh sách người tham gia chưa
         
-        // Lay thong tin trong objPhieuDuBao, kiem tra MA PHIEN va TRANG THAI cua phien du bao
+        // Nếu chưa có thì cho vào danh sách tham gia
+
+        // Chuyển cho 0.01 ETH để có thể chạy contract
         
-        // Kiem tra thoi han NOP PHIEU cua phien du bao
+        // Chuyển 150 NGIN để tham ra tạo phiếu ban đầu
         
-        // Kiem tra KetQuaDuBao trong phieu co nam trong danh sach LuaChon hop le cua phien hay khong?
+    }
+
+    event NopPhieuDuBaoThanhCongRoi(uint16 intMaPhieu);
+    
+    // Gọi hàm này để nộp phiếu dự báo vào 1 phiên dự báo nào đó 
+    function NopPhieuDuBao(bytes6 intMaPhienDuBao, uint intKetQuaDuBao, uint intGiaTriDuBao) public {
         
+        // Tạo đối tượng phiếu dự báo
+        
+        PhieuDuBao memory objPhieuDuBao = PhieuDuBao({
+             MaPhienDuBao: intMaPhienDuBao,
+             KetQuaDuBao: intKetQuaDuBao,
+             GiaTriDuBao: intGiaTriDuBao, // tinh bang XU = 1 ETH
+             ThoiGian: block.timestamp,
+             TrangThai: enTrangThaiPhieuDuBao.HieuLuc
+        });
+        // Kiểm tra số xu có đủ số tiền để tham gia không, số dư >=10
+        require(objPhieuDuBao.GiaTriDuBao >=10 * (1 ether) && msg.sender.balance >= objPhieuDuBao.GiaTriDuBao);
+        
+        // Kiểm tra số ủy nhiệm chi >= số tham gia
+        uint GiaTriUyNhiem = KhoTien.allowance(msg.sender, address(this));
+        require(GiaTriUyNhiem >= objPhieuDuBao.GiaTriDuBao);
+
+        require(objPhieuDuBao.MaPhienDuBao > 0 );
+        // Kiểm tra mã phiên và trạng thái của phiên dự báo
+        PhienDuBao memory objPhienDuBao = DanhSachPhien[objPhieuDuBao.MaPhienDuBao];
+
+        // Kiểm tra xem phiên có tồn tại hay không
+        require(objPhienDuBao.MaPhien == objPhieuDuBao.MaPhienDuBao);
+
+        // Kiểm tra trạng thái phiên dự báo
+        require(objPhienDuBao.TrangThai == enTrangThaiPhien.DangNhanPhieu);
+
+        // Kiểm tra thời hạn nộp phiếu của phiên dự báo
+        require(objPhieuDuBao.ThoiGian <= objPhienDuBao.ThoiHanKetThucNopPhieu);  
+
+        // Kiểm tra sự lựa chọn trong phiếu dự báo có trong phiên hay không
+        bool KiemTraLuaChon = false;
+        for(uint i = 0; i<=objPhienDuBao.LuaChon.length;i++){
+            if(objPhienDuBao.LuaChon[i] == objPhieuDuBao.KetQuaDuBao){
+                KiemTraLuaChon = true;
+                break;
+            }
+        }
+        // Convert mảng lựa chọn thành bytes và kiểm tra có trong chuỗi đấy không
+
         // PASS QUA CAC DIEU KIEN => XU LY PHIEU
-        
+        if(KiemTraLuaChon == true){
         // Cong tong so phieu cua phien du bao
             // Lay doi tuong phien du bao tu DanhSachPhien 
             // Cap nhat TongSoPhieu tang len 1 phieu
-        
+            objPhienDuBao.TongSoPhieu += 1;
+            objPhienDuBao.TongGiaTri += objPhieuDuBao.GiaTriDuBao;
         // Cho phieu vao DanhSachPhieuDuBao 
              // Lay mapping danh sach phieu tuong ung voi phien du bao hien tai
              // Sinh MaPhieu = MaPhien << 24 + TongSoPhieu trong phien de lam KEY
+             // Sử dụng OR dịch trái mã phiên
+            uint16 intMaPhieu = uint16(bytes2(objPhienDuBao.MaPhien<<12 + objPhienDuBao.TongSoPhieu));
              // PUSH phieu du bao vao mapping danh sach phieu thuoc mot PHIEN DU BAO
-             
+            DanhSachPhieuDuBao[bytes6(objPhienDuBao.MaPhien)][intMaPhieu] = objPhieuDuBao;
+
         // Cap nhat nguoi gui phieu vao DanhSachThamGia
             // Cap nhat BO SUNG ma phieu vao danh sach phieu cua nguoi tham gia 
+            DanhSachThamGia[objPhienDuBao.MaPhien][msg.sender].DanhSachPhieu.push(intMaPhieu);
         
+        //  mapping(bytes6 => mapping(uint => TongHopKetQua)) TongHopKetQuaPhien;   // MaPhien -> TongHop(MaLuaChon -> TongHopKetQua)
         // Tong hop ket qua du bao
              // Lay doi tuong tong  hop theo MaPhien  => mapping
              // Lay doi tuong tong hop theo MaLuaChon => struct
              // Cap nhat TongGiaTri tang them so XU trong phieu
              // Cap nhat TongSoPhieu tang them 1
+            TongHopKetQuaPhien[objPhienDuBao.MaPhien][objPhieuDuBao.KetQuaDuBao].TongGiaTri+= objPhieuDuBao.GiaTriDuBao;
+            TongHopKetQuaPhien[objPhienDuBao.MaPhien][objPhieuDuBao.KetQuaDuBao].TongSoPhieu+= 1;
+  
         
         // Tang tong so lan du bao cua toan bo SMART CONTRACT len 1  
+
+            TongSoLanDuBao+=1;
         // Tang tong gia tri XU vao SMART CONTRACT len +=GiaTriDuBao nam trong phieu
-        
+
+            TongGiaTriDuBao+=objPhieuDuBao.GiaTriDuBao;
         // Bao su kien NOP PHIEU THANH CONG
+
+        // Code thêm cập nhật tỷ lệ
+
+            emit NopPhieuDuBaoThanhCongRoi(intMaPhieu);
+        }
     }
     
     // Goi ham nay de dang ky tai khoan xac nhan ket qua THUC TE

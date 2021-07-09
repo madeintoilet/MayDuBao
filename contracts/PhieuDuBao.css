@@ -1,0 +1,56 @@
+@import url(https://fonts.googleapis.com/css?family=BenchNine:700);
+body{
+  background-image: url('./bn.jpg')!important;
+  color: white;
+}
+.snip1582 {
+  background-color: #0099FF;
+  border: none;
+  color:white;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-block;
+  outline: none;
+  position: relative;
+  text-transform: uppercase;
+}
+
+.snip1582:before,
+.snip1582:after {
+  border-color: transparent;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  border-style: solid;
+  border-width: 0;
+  content: "";
+  height: 24px;
+  position: absolute;
+  width: 24px;
+}
+
+.snip1582:before {
+  border-color: #FF0000;
+  border-top-width: 2px;
+  left: 0px;
+  top: -5px;
+}
+
+.snip1582:after {
+  border-bottom-width: 2px;
+  border-color: #FF0000;
+  bottom: -5px;
+  right: 0px;
+}
+
+.snip1582:hover,
+.snip1582.hover {
+  background-color: #FF0000;
+}
+
+.snip1582:hover:before,
+.snip1582.hover:before,
+.snip1582:hover:after,
+.snip1582.hover:after {
+  height: 100%;
+  width: 100%;
+}
