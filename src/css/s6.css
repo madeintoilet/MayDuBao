@@ -22,3 +22,22 @@
 .btn-group button{
     margin-bottom: 15px;
 }
+
+header{
+    margin-top: 130px;
+}
+
+header img{
+    width: 100%;
+}
+body {
+    background-image: url(../images/bg.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.container{
+    background-image: url(../images/images.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
