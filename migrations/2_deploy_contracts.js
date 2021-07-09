@@ -1,5 +1,5 @@
-var DuBaoTuongLai = artifacts.require("DuBaoTuongLai");
+var PredictionContract = artifacts.require("PredictionContract.sol");
 
 module.exports = deployer => {
-    deployer.deploy(DuBaoTuongLai);
+    deployer.deploy(PredictionContract);
 };

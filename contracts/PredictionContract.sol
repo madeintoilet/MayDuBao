@@ -1,17 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.0; 
-pragma experimental ABIEncoderV2;
 
-/// Day la branch Nhom3_Backend
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address sender,address recipient,uint256 amount) external returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
 
-contract DuBaoTuongLai {
+contract DuBaoTuongLai
+{
     uint public TongSoPhienDuBao;
+    uint public TongSoLuaChon;
     uint public TongSoLanDuBao;  // Tong so lan du bao cho tat ca cac phien
     uint public TongGiaTriDuBao; // Tong gia tri du bao cho tat ca cac phien
     
-    address NguoiTao;
+    address  NguoiTao;
 
-    enum enTrangThaiPhien { Moi, DangNhanPhieu, NgungNhanPhieu, DaXacNhanKetQua, KetThuc }
+    enum enTrangThaiPhien { Moi, DangNhanPhieu, NgungNhanPhieu, KetThuc }
     struct PhienDuBao {
         bytes6  MaPhien;
         string  MoTa;
@@ -24,7 +34,6 @@ contract DuBaoTuongLai {
         
         uint16  SoXacNhanKetQuaToiThieu;
         uint16  SoXacNhanKetQuaHienTai;
-        uint16  KetQuaXacNhanLanCuoi;
         uint16  KetQuaCuoiCung;
         
         string  TyLeLuaChon;
@@ -34,10 +43,10 @@ contract DuBaoTuongLai {
 
     enum enTrangThaiPhieuDuBao { HieuLuc, HetHieuLuc }
     struct PhieuDuBao {
-        uint MaPhienDuBao;
-        uint KetQuaDuBao;
-        uint GiaTriDuBao; // tinh bang XU = 1 ETH
-        uint ThoiGian;
+        bytes6  MaPhienDuBao;
+        uint    KetQuaDuBao;
+        uint    GiaTriDuBao; // tinh bang XU = 1 ETH
+        uint    ThoiGian;
         enTrangThaiPhieuDuBao TrangThai; 
     }
     
@@ -45,22 +54,23 @@ contract DuBaoTuongLai {
     mapping(bytes6 => mapping(uint => PhieuDuBao)) private DanhSachPhieuDuBao; 
 
     struct TongHopKetQua {
-        uint TongGiaTri; 
+        uint TongGiaTri;
         uint TongSoPhieu;
     }
 
-    mapping(uint => mapping(uint => TongHopKetQua)) TongHopKetQuaPhien;   // MaPhien -> TongHop(MaLuaChon -> TongHopKetQua)
+    mapping(uint48 => mapping(uint => TongHopKetQua)) TongHopKetQuaPhien;   // MaPhien -> TongHop(MaLuaChon -> TongHopKetQua)
 
-    enum enTrangThaiLuaChon {DangSuDung, HuyBo}
+    enum enTrangThaiLuaChon {HieuLuc, HetHieuLuc}
     struct LuaChon {
         // uint16 MaLuaChon;
         string MoTa;
         enTrangThaiLuaChon TrangThai;
     }
-
+    
     mapping(uint => LuaChon) public DanhSachLuaChon; // MaLuaChon => Mo Ta lua chon & trang thai
     
-    struct NguoiThamGia {
+    struct NguoiThamGia
+    {
         string HoTen;
         string DienThoai;
         uint16[] DanhSachPhieu;
@@ -75,55 +85,157 @@ contract DuBaoTuongLai {
     uint16                  SoNguoiXacNhanKetQua;
     address[]               TaiKhoanXacNhanKetQua; 
 
-    event DangKyNguoiXacNhanKetQuaThanhCong(address adNguoiXacNhan);
-    event XacNhanKetQuaThanhCong(bytes6 MaPhien, uint ThoiGian);
-    event DaChotKetQuaCuoiCung(uint ThoiGian);
-
-    constructor() {
+    constructor(address  adNguoiTao) {
         TongSoPhienDuBao = 0;
+        TongSoLuaChon = 0;
         TongSoLanDuBao = 0;
         TongGiaTriDuBao = 0;
         TrangThaiHoatDong = enTrangThaiHoatDong.DangHoatDong;
-        NguoiTao = msg.sender;
+        NguoiTao = adNguoiTao;
+    }
+
+    event evTaoPhienDuBaoRoi(bytes6 intMaPhien);
+    event evDangKyLuaChonRoi(uint _maLuaChon);
+    event evCapNhatLuaChonRoi(uint _maLuaChon);
+    event evCapNhatLuaChonVaoPhienRoi();
+    event evDaDangKyThamGiaThanhCong();
+    event evCapNhatTrangThaiPhienRoi();
+    
+    modifier KiemTraNguoiTaoGoiHam(){
+        require(msg.sender == NguoiTao,'Ban khong co quyen truy cap');
+        _;
     }
     
     // Goi ham nay de tao phien du bao cho moi tran dau
-    function TaoPhienDuBao(string memory strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien) public returns (uint MaPhienDuBao)    {
-        // Tang tong so phien va cap ma cho phien du bao
-        // TongSoPhienDuBao += 1;
-        // bytes6 MaPhienDuBao = bytes6(keccak256(block.timestamp + TongSoPhienDuBao));
+    function TaoPhienDuBao(string memory strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien, uint16[] memory arrLuaChon) public KiemTraNguoiTaoGoiHam returns (bytes6 intMaPhienDuBao)  {
+        //Kiem tra co phai nguoi tao hay khong? 
+            //Su dung modifier
+            
+        //Kiem tra xem ThoiHanKetThucNopPhieu > ThoiHanKetThuc 
+        require(dtThoiHanKetThucPhien > dtThoiHanKetThucNopPhieu);
         
-        // Tao doi tuong phien du bao
+        // Tang tong so phien va cap ma cho phien du bao
+        TongSoPhienDuBao += 1;
+        intMaPhienDuBao = bytes6(keccak256(abi.encodePacked(block.timestamp + TongSoPhienDuBao)));
         
         // Cho vao mapping danh sach phien du bao
+        DanhSachPhien[intMaPhienDuBao] = PhienDuBao({   MaPhien: intMaPhienDuBao,
+                                                        MoTa: strMoTaPhien,
+                                                        TongSoPhieu: 0,
+                                                        TongGiaTri: 0,
+                                                        GiaTriConLai: 0,
+                                                        ThoiHanKetThucNopPhieu: dtThoiHanKetThucNopPhieu,
+                                                        ThoiHanKetThuc: dtThoiHanKetThucPhien,
+                                                        SoXacNhanKetQuaToiThieu: 2,
+                                                        SoXacNhanKetQuaHienTai: 0,
+                                                        KetQuaCuoiCung: 0,
+                                                        TyLeLuaChon: "",
+                                                        LuaChon: arrLuaChon,
+                                                        TrangThai: arrLuaChon.length == 0 ? enTrangThaiPhien.Moi : enTrangThaiPhien.DangNhanPhieu});
         
+        emit evTaoPhienDuBaoRoi(intMaPhienDuBao);
+        return intMaPhienDuBao;
     }
     
     // Goi ham nay de dang ky danh sach cac doi bong
-    function DangKyLuaChon(string memory strMoTaLuaChon) public returns (uint16 MaLuaChon) {
-        // Bo sung lua chon vao danh sach va tra ve ma lua chon moi
+    function DangKyLuaChon(uint intMaLuaChonCapNhat,string memory strMoTaLuaChon, uint8 intTrangThaiLuaChonCapNhat) public KiemTraNguoiTaoGoiHam returns (uint intMaLuaChon) {
+        //Kiem tra co phai nguoi tao hay khong? 
+            //Su dung modifier
+
+        //Kiem tra strMoTaLuaChon k duoc rong
+        require(bytes(strMoTaLuaChon).length > 0,'Khong duoc bo trong mo ta');
+        
+        if(intMaLuaChonCapNhat == 0){
+            //Tao Lua Chon moi
+            TongSoLuaChon += 1;
+            intMaLuaChon = TongSoLuaChon;
+            
+            //Them LuaChon vao DanhSachLuaChon
+            DanhSachLuaChon[intMaLuaChon] = LuaChon({   MoTa: strMoTaLuaChon,
+                                                        TrangThai: enTrangThaiLuaChon.HieuLuc});
+                                                        
+            emit evDangKyLuaChonRoi(intMaLuaChon);
+        } else {
+            //Cap nhat Lua chon cu~ da co san
+            //Kiem tra xem MaLuaChonCapNhat co ton tai hay khong?
+            require(bytes(DanhSachLuaChon[intMaLuaChonCapNhat].MoTa).length > 0);
+            
+            //Kiem tra trang thai co ton tai trong enTrangThaiLuaChon hay khong?
+            require(intTrangThaiLuaChonCapNhat <= uint8(enTrangThaiLuaChon.HetHieuLuc));
+            
+            //Cap nhat thong tin LuaChon
+            intMaLuaChon = intMaLuaChonCapNhat;
+            DanhSachLuaChon[intMaLuaChon] = LuaChon({   MoTa: strMoTaLuaChon,
+                                                        TrangThai: enTrangThaiLuaChon(intTrangThaiLuaChonCapNhat)});
+                                                        
+            emit evCapNhatLuaChonRoi(intMaLuaChon);
+        }
+        return intMaLuaChon;
     }
     
     // Goi ham nay de gan cac doi tuong ung tu danh sach lua chon vao phien du bao gan voi mot tran dau
-    function CapNhatLuaChonVaoPhienDuBao(uint MaPhienDuBao, uint16[] memory ciDanhSachLuaChon) public
+    function CapNhatLuaChonVaoPhienDuBao(bytes6 intMaPhienDuBao,uint16[] memory ciDanhSachLuaChon) public KiemTraNguoiTaoGoiHam
     {
+        //Kiem tra co phai nguoi tao hay khong? 
+            //Su dung modifier
+        
+        //Kiem tra xem ma phien co hop le hay khong
+        PhienDuBao storage objPhien = DanhSachPhien[intMaPhienDuBao];
+        require(objPhien.MaPhien == intMaPhienDuBao,'Ma phien khong hop le');
+        
+        //Kiem tra trang thai phien du bao
+        require(objPhien.TrangThai == enTrangThaiPhien.Moi);
+        
         // Bo sung ma lua chon vao danh sach lua chon cua phien
+        objPhien.LuaChon = ciDanhSachLuaChon;
+        objPhien.TrangThai = ciDanhSachLuaChon.length == 2 ? enTrangThaiPhien.DangNhanPhieu : enTrangThaiPhien.Moi;
+        
+        //emit thong bao
+        emit evCapNhatLuaChonVaoPhienRoi();
     }
     
     // Dang ky tham gia du bao, moi nguoi duoc dang ky tham gia 1 lan duy nhat vao mot phien du bao 
-    function DangKyThamGiaDuBao(bytes6 intMaPhienDuBao) public 
+    function DangKyThamGiaDuBao(bytes6 intMaPhienDuBao, string memory strHoTen, string memory strDienThoai) public 
     {
+        //Kiem tra xem ma phien co hop le hay khong
+        require(DanhSachPhien[intMaPhienDuBao].MaPhien == intMaPhienDuBao,'Ma phien khong hop le'); 
+        
         // Kiem tra xem tai khoan msg.sender co trong danh sach tham gia chua
+        NguoiThamGia memory objNguoiThamGia = DanhSachThamGia[intMaPhienDuBao][msg.sender];
+        require(bytes(objNguoiThamGia.HoTen).length == 0); 
         
         // Neu chua co tai khoan nay thi bo sung vao danh sach tham gia va AIR DROP token 
+        DanhSachThamGia[intMaPhienDuBao][msg.sender] = NguoiThamGia({ HoTen: strHoTen,
+                                                                      DienThoai: strDienThoai,
+                                                                      DanhSachPhieu: new uint16[](0),
+                                                                      DaQuyetToanXong: false 
+                                                                    });
+        //Air drop token
         // Chuyen 0.01 ETH de chay contract nay
         
         // Chuyen 150 NGIN ban dau de tao cac phieu du bao
+        emit evDaDangKyThamGiaThanhCong();
+    }
+
+    function CapNhatTrangThaiPhienDuBao(bytes6 intMaPhienDuBao, uint8 intTrangThaiPhien) public KiemTraNguoiTaoGoiHam {
+        //Kiem tra co phai nguoi tao hay khong? 
+            //Su dung modifier
+            
+        //Kiem tra trang thai co ton tai trong enTrangThaiPhien hay khong?
+        require(intTrangThaiPhien <= uint8(enTrangThaiPhien.KetThuc));
         
+        //Kiem tra xem ma phien co hop le hay khong
+        PhienDuBao storage objPhien = DanhSachPhien[intMaPhienDuBao];
+        require(objPhien.MaPhien == intMaPhienDuBao,'Ma phien khong hop le');
+        
+        //Thay doi trang thai cho phien du bao
+        objPhien.TrangThai = enTrangThaiPhien(intTrangThaiPhien);
+        
+        emit evCapNhatTrangThaiPhienRoi();
     }
     
     // Goi ham nay de nop phieu du bao vao mot PHIEN DU BAO nao do 
-    function NopPhieuDuBao(PhieuDuBao memory objPhieuDuBao) public 
+    function NopPhieuDuBao() public 
     {
         // Kiem tra so du XU cua nguoi gui phieu msg.sender dam bao co du tien de tham gia, so tien tham gia >= 10
         
@@ -162,100 +274,22 @@ contract DuBaoTuongLai {
     }
     
     // Goi ham nay de dang ky tai khoan xac nhan ket qua THUC TE
-    function DangKyXacNhanKetQua(bytes6 intMaPhienDuBao, address adNguoiXacNhan) public {
+    function DangKyXacNhanKetQua(address adNguoiXacNhan) public
+    {
         // Kiem tra chi cho phep nguoi tao CONTRACT moi duoc phep goi ham nay
-        require(msg.sender == NguoiTao, "Chi co Admin moi duoc phep thuc hien thao tac nay");
-
         // Kiem tra dam bao nguoi tham gia khong the XAC NHAN KET QUA 
-        // mapping(uint => mapping(address => NguoiThamGia)) DanhSachThamGia; // MaPhien -> Danh sach nguoi:Thoi Gian tham gia
-        NguoiThamGia memory _nguoithamgia = DanhSachThamGia[intMaPhienDuBao][adNguoiXacNhan];
-        require((bytes(_nguoithamgia.HoTen).length == 0 && bytes(_nguoithamgia.DienThoai).length == 0), "Nguoi tham gia khong co quyen xac nhan ket qua du bao");
-        
         // Kiem tra nguoi xac nhan da co trong danh sach chua 
-        for(uint i = 0; i < TaiKhoanXacNhanKetQua.length; i++) {
-            if(TaiKhoanXacNhanKetQua[i] == adNguoiXacNhan) {
-                revert("Nguoi xac nhan ket qua da co trong danh sach");
-            }
-        }
-        
         // Tang SoNguoiXacNhanKetQua len 1
-        SoNguoiXacNhanKetQua += 1;
-        
         // Cap nhat nguoi xac nhan vao danh sach TaiKhoanXacNhanKetQua  
-        //TaiKhoanXacNhanKetQua[SoNguoiXacNhanKetQua - 1] = adNguoiXacNhan;
-        TaiKhoanXacNhanKetQua.push(adNguoiXacNhan);
-
-        // Phat event thong bao dang ky xac nhan ket qua thanh cong
-        emit DangKyNguoiXacNhanKetQuaThanhCong(adNguoiXacNhan);
     }
     
     // Tai khoan nam trong danh sach xac nhan ket qua se goi ham nay de XAC NHAN KET QUA
-    function XacNhanKetQua(bytes6 intMaPhienDuBao, uint16 intMaLuaChonLaKetQuaCuoi) public
+    function XacNhanKetQua(uint16 intMaLuaChonLaKetQuaCuoi) public
     {
         // Kiem tra tai khoan msg.sender nam trong danh sach nguoi xac nhan ket qua 
-        bool bTonTaiNguoiXacNhan = false;
-        for(uint i = 0; i < TaiKhoanXacNhanKetQua.length; i++) {
-            if(TaiKhoanXacNhanKetQua[i] == msg.sender) {
-                bTonTaiNguoiXacNhan = true;
-                break;
-            }
-        }
-        require(bTonTaiNguoiXacNhan, "Tai khoan nay khong hop le de xac nhan ket qua du bao");
-
         // Kiem tra dam bao intMaLuaChonLaKetQuaCuoi nam trong danh sach lua chon hop le 
-        require(bytes(DanhSachLuaChon[intMaLuaChonLaKetQuaCuoi].MoTa).length > 0, "Lua chon nay khong nam trong danh sach lua chon hop le");
-
-        PhienDuBao storage objPhienDuBao = DanhSachPhien[intMaPhienDuBao];
-        
-        require(objPhienDuBao.MaPhien > 0, "Phien du bao khong hop le");
-
-        bool bTonTaiLuaChonTrongDanhSachCuaPhien = false;
-        for(uint i = 0; i < objPhienDuBao.LuaChon.length; i++) {
-            if(objPhienDuBao.LuaChon[i] == intMaLuaChonLaKetQuaCuoi) {
-                bTonTaiLuaChonTrongDanhSachCuaPhien = true;
-                break;
-            }
-        }
-        
-        require(bTonTaiLuaChonTrongDanhSachCuaPhien == true);
-        
-        //Kiem tra SoXacNhanKetQuaHienTai cua Phien du bao, neu chua co ai xac nhan thi tang len 1
-        if(objPhienDuBao.SoXacNhanKetQuaHienTai == 0) {
-            objPhienDuBao.SoXacNhanKetQuaHienTai += 1;
-            
-            // Gan intMaLuaChonLaKetQuaCuoi vao truong KetQuaXacNhanLanCuoi cua Phien
-            objPhienDuBao.KetQuaXacNhanLanCuoi = intMaLuaChonLaKetQuaCuoi;
-        }
-        else {
-            // Nếu SoXacNhanKetQuaHienTai của Phiên lớn hơn 0, tức là đã có người xác nhận kết quả
-            // Kiểm tra KetQuaXacNhanLanCuoi có khớp với intMaLuaChonKetQuaCuoi hay không
-            if(objPhienDuBao.KetQuaXacNhanLanCuoi == intMaLuaChonLaKetQuaCuoi) {
-                // Cập nhật SoXacNhanKetQuaHienTai của Phiên tăng lên 1
-                objPhienDuBao.SoXacNhanKetQuaHienTai += 1;
-            } 
-            else {
-                // Nếu KetQuaXacNhanLanCuoi của Phiên khác với intMaLuaChonLaKetQuaCuoi 
-                // thì phải reset SoXacNhanKetQuaHienTai của Phiên về 1
-                objPhienDuBao.SoXacNhanKetQuaHienTai = 1;
-                
-                // Gán lại KetQuaXacNhanLanCuoi của Phiên với intMaLuaChonLaKetQuaCuoi
-                objPhienDuBao.KetQuaXacNhanLanCuoi = intMaLuaChonLaKetQuaCuoi;
-            }
-        }
-        
-        // Phát event Xác nhận kết quả thành công
-        emit XacNhanKetQuaThanhCong(objPhienDuBao.MaPhien, block.timestamp);
-        
+        // Tang so xac nhan ket qua HIEN TAI trong PHIEN DU BAO len 1 
         // Kiem tra neu SO XAC NHAN >= SoXacNhanKetQuaToiThieu -> cap nhat KetQuaCuoiCung cho phien du bao 
-        if(objPhienDuBao.SoXacNhanKetQuaHienTai >= objPhienDuBao.SoXacNhanKetQuaToiThieu) {
-            objPhienDuBao.KetQuaCuoiCung = intMaLuaChonLaKetQuaCuoi;
-            
-            // Cập nhật trạng thái của Phiên thành Đã xác nhận kết quả
-            objPhienDuBao.TrangThai = enTrangThaiPhien.DaXacNhanKetQua;
-            
-            // Phát event Đã chốt kết quả cuối cùng
-            emit DaChotKetQuaCuoiCung(block.timestamp);
-        }
     }
     
     // Goi ham nay khi da co ket qua chinh thuc de linh thuong
