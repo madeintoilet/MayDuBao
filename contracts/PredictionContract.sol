@@ -94,7 +94,7 @@ contract DuBaoTuongLai {
     event DaChotKetQuaCuoiCung(uint ThoiGian);
     event DaQuyetToanXongRoi(address adNguoiThamGia, uint GiaTriQuyetToan);
 
-    constructor(address adDiaChiKhoTien) public {
+    constructor(address adDiaChiKhoTien) {
         TongSoPhienDuBao = 0;
         TongSoLuaChon = 0;
         TongSoLanDuBao = 0;
@@ -113,6 +113,9 @@ contract DuBaoTuongLai {
     function TaoPhienDuBao(string memory strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien, uint16[] memory arrLuaChon) public KiemTraNguoiTaoGoiHam returns (bytes6 intMaPhienDuBao)  {
         //Kiem tra co phai nguoi tao hay khong? 
             //Su dung modifier
+
+        //Kiem tra MoTaPhien co rong hay khong
+        require(bytes(strMoTaPhien).length > 0, "Mo ta phien du bao khong duoc phep de trong");
             
         //Kiem tra xem ThoiHanKetThucNopPhieu > ThoiHanKetThuc 
         require(dtThoiHanKetThucPhien > dtThoiHanKetThucNopPhieu);
@@ -139,6 +142,33 @@ contract DuBaoTuongLai {
         
         emit evTaoPhienDuBaoRoi(intMaPhienDuBao);
         return intMaPhienDuBao;
+    }
+
+    // Gọi hàm này để load ra phiên dự báo
+    function XemPhienDuBao(bytes6 intMaPhienDuBao) public view 
+                                            returns (
+                                                string memory strMoTaPhien, 
+                                                uint dtThoiHanKetThucNopPhieu,
+                                                uint dtThoiHanKetThucPhien,
+                                                uint16 intKetQuaCuoiCung,
+                                                string memory strTyLe,
+                                                uint16[] memory arrLuaChon,
+                                                enTrangThaiPhien intTrangThai
+                                            ) {
+        // Kiem tra ma phien du bao nhap vao co ton tai trong danh sach hay khong
+        require(DanhSachPhien[intMaPhienDuBao].MaPhien == intMaPhienDuBao, "Phien du bao khong ton tai");
+
+        PhienDuBao memory objPhienDuBao = DanhSachPhien[intMaPhienDuBao];
+
+        return (
+            objPhienDuBao.MoTa, 
+            objPhienDuBao.ThoiHanKetThucNopPhieu,
+            objPhienDuBao.ThoiHanKetThuc,
+            objPhienDuBao.KetQuaCuoiCung,
+            objPhienDuBao.TyLeLuaChon,
+            objPhienDuBao.LuaChon,
+            objPhienDuBao.TrangThai
+        );
     }
     
     // Goi ham nay de dang ky danh sach cac doi bong
