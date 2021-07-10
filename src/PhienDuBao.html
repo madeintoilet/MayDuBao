@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Phiên Dự Báo</title>
+
+    <!-- multiselect -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/css/bootstrap-select.css">
+    <!-- Boostrap css -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.css">
+    <link rel="stylesheet" href="css/style1.css">
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/js/bootstrap-select.js"></script>
+</head>
+
+<body>
+    <div class="logo"><img src="images/bg.png" alt=""></div>
+    <div class="container">
+        <div class="col-12">
+            <h2 class="text-center" style="margin-bottom: 35px; margin-top: 30px;"><b>Phiên Dự Báo</b></h2>
+        </div>
+        <form class="">
+            <div class="form-group row mt-3">
+                <label for="txtMaPhien" class="col-lg-3 text-right">Mã Phiên</label>
+                <div class="col-lg-2">
+                    <input type="text" class="form-control" id="txtMaPhien">
+                </div>
+                <div class="mt-3 ">
+                    <label class="col-lg-2 text-right" for="danhSachDuBao">Danh Sách Dự Báo</label>
+                    <div class="col-lg-4">
+                        <select class="selectpicker" id='danhSachDuBao' multiple data-live-search="true">
+                            <option value="1">Italia</option>
+                            <option value="2">Anh</option>
+                            <option value="3">Đức</option>
+                            <option value="4">Pháp</option>
+                        </select>
+                        <button type="button" class="btn btn-warning"
+                            onclick="App.capNhatLuaChonVaoPhien(); return false">+</button>
+                        <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo">+</button> -->
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3"></div>
+                <p class="col-6" id="errorArrLuaChon" style="display:none; color: red;">Vui lòng chọn 2 đội</p>
+            </div>
+            <div class="form-group row mt-3">
+                <label for="txtMoTa" class="col-lg-3 text-right">Mô Tả</label>
+                <div class="col-lg-7">
+                    <input type="text" class="form-control" id="txtMoTa">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3"></div>
+                <p class="col-6" id="errorMoTa" style="display:none; color: red;">Vui lòng nhập mô tả</p>
+            </div>
+
+            <div class="row mt-3 thoiHan">
+                <label class="text-right col-lg-3" for="thoiHanNopPhieu">Thời Hạn Nộp Phiếu</label>
+                <div class="col-lg-3">
+                    <div class='input-group date'>
+                        <input type='text' id='thoiHanNopPhieu' class="form-control" />
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+                <label class="text-righ col-lg-1" for="thoiHanKetThuc">Thời Hạn Kết Thúc</label>
+                <div class="col-lg-3">
+                    <div class='input-group date'>
+                        <input type='text' id='thoiHanKetThuc' class="form-control" />
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3"></div>
+                <p class="col-6" id="errorThoiHanNopPhieu" style="display:none; color: red;">Vui lòng nhập thời hạn nộp
+                </p>
+                <p class="col-6" id="errorThoiHanKetThuc" style="display:none; color: red;">Vui lòng nhập thời hạn kết
+                    thúc</p>
+            </div>
+
+            <div class="mt-5 col-lg-offset-5 group-button">
+                <button onclick="App.taoPhienDuBao(); return false" id="btnTaoPhienDuBao"
+                    class="btn btn-success mr-5 btnSubmit ">Tạo</button>
+                <button onclick="App.huyPhienDuBao(); return false" id="btnHuyPhienDuBao"
+                    class="btn btn-danger btnSubmit ">Hủy</button>
+            </div>
+        </form>
+
+        <!-- modal thêm đội vào danh sách dự báo -->
+        <!-- <div class="modal  modal-xl fade" id="exampleModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">Đội bóng:</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+                    <button onclick="App.capNhatLuaChonVaoPhienDuBao(); return false" class="btn btn-primary">Thêm</button>
+                </div>
+
+            </div>
+        </div> -->
+        <!-- end modal -->
+    </div>
+
+
+    <script type="text/javascript">
+        $(function () {
+            $('#thoiHanNopPhieu').datetimepicker({
+                useCurrent: false, //Important! See issue #1075
+                format: 'DD/MM/YYYY HH:mm'
+            });
+            $('#thoiHanKetThuc').datetimepicker({
+                useCurrent: false, //Important! See issue #1075
+                format: 'DD/MM/YYYY HH:mm'
+            });
+            $("#thoiHanNopPhieu").on("dp.change", function (e) {
+                $('#thoiHanKetThuc').data("DateTimePicker").minDate(e.date);
+            });
+            $("#thoiHanKetThuc").on("dp.change", function (e) {
+                $('#thoiHanNopPhieu').data("DateTimePicker").maxDate(e.date);
+            });
+
+        });
+    </script>
+
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <!--  <script src="js/app.js"></script> -->
+    <script src="js/app2.js"></script>
+
+
+</body>
+
+</html>

@@ -22,11 +22,12 @@
 </head>
 
 <body>
+  <div class="logo"><img src="images/bg.png" alt=""></div>
   <div class="container" style="width: 750px">
-    <h2 class="text-center"> Xác nhận kết quả thực tế </h2>
+    <h2 class="text-center header-title"> Xác nhận kết quả thực tế </h2>
     <div class="row-item row">
       <span class="col-sm-4">Phiện dự báo: </span>
-      <input type="text" class="col-sm-7 form-control" style="width: 92%;">
+      <input type="text" class="col-sm-7 form-control" value="0xe1731c8c2d50" style="width: 92%;">
       <button type="button" class="btn btn-primary col-sm-1">
         <i class="fa fa-search"></i>
       </button>
@@ -37,11 +38,15 @@
     </div>
     <div class="row-item row">
       <span class="col-sm-4">Kết quả: </span>
-      <select class="col-sm-8 form-control">
-        <option selected>Chọn kết quả cuối cùng</option>
+      <select class="col-sm-8 form-control" id="resultConfirm">
+        <option value="0">Chọn kết quả cuối cùng</option>
         <option value="1">Italia thắng</option>
         <option value="2">Anh thắng</option>
       </select>
+    </div>
+    <div class="row-item row">
+      <span class="col-sm-4">Tài khoản xác nhận: </span>
+      <input type="text" class="col-sm-8 form-control" id="showAddressConfirm" readonly>
     </div>
     <div class="form-check">
       <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" style="margin-right: 5px;">
@@ -49,8 +54,8 @@
         Tôi cam kết đây là SỰ THẬT
       </label>
     </div>
-    <div class="btn-submit text-right">
-      <button type="button" class="btn btn-primary">XÁC NHẬN</button>
+    <div class="btn-submit text-center">
+      <button type="button" class="btn btn-danger" id="btnConfirm" disabled>XÁC NHẬN</button>
     </div>
   </div>
 
@@ -60,7 +65,7 @@
   <script src="js/bootstrap.min.js"></script>
   <script src="js/web3.min.js"></script>
   <script src="js/truffle-contract.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/app2.js"></script>
 </body>
 
 </html>

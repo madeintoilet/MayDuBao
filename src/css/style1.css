@@ -1,0 +1,58 @@
+body {
+    background-image: url(../images/background-euro-2020.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    /* margin-top: 100px; */
+    color: white;
+    backdrop-filter: blur(2px);
+    height: 100vh;
+}
+
+h1 {
+    margin-bottom: 50px;
+}
+
+.btnSearch {
+    background-color: rgb(113, 4, 255);
+    border: none;
+    width: 60px;
+}
+
+.btnSubmit {
+    background-color: rgb(113, 4, 255);
+    border: none;
+    width: 100px;
+    height: 45px;
+}
+
+
+/* Đăng ký tham gia */
+
+#thongBao {
+    color: red;
+}
+
+
+/* Phiên dự báo */
+
+.group-button {
+    margin-top: 30px;
+}
+
+.group-button>button {
+    margin-left: 20px;
+}
+
+.date {
+    color: rgb(0, 102, 255);
+}
+
+.logo img {
+    width: 100%;
+    position: absolute;
+    top: 0;
+}
+
+.container{
+    padding-top: 150px !important;
+}

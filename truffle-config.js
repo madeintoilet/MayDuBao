@@ -9,12 +9,12 @@ module.exports = {
             host: "127.0.0.1", // Localhost (default: none)
             port: 7545, // Standard Ethereum port (default: none)
             network_id: "5777", // Any network (default: none)
-            from: "0xfB352202e1AaD6d0f0B7d0E50abd4AD2bAe4d81B"
+            from: "0x6976e231a2B80052A4d33875eFD386B980a486fC"
         }
     },
     compilers: {
         solc: {
-            version: "^0.4.0"
+            version: ">=0.4.0 <0.8.0"
         }
     }
 };

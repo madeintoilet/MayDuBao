@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng ký tham gia</title>
+
+    <!-- Bootstrap css -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style1.css">
+    <!-- icon -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+</head>
+
+<body>
+    <div class="logo"><img src="images/bg.png" alt=""></div>
+    <div class="container">
+        <div class="col-12">
+            <h2 class="text-center" style="margin-top: 25px; margin-bottom: 20px;">Đăng Ký Tham Gia</h2>
+        </div>
+        <form>
+            <div class="form row mt-3">
+                <label for="txtPhienDuBao" class="col-3 col-form-label text-right">Phiên Dự Báo</label>
+                <div class="col-3">
+                    <input type="text" class="form-control" id="txtPhienDuBao">
+                </div>
+                <div class="input-group-append col-1">
+                    <button class="btn btn-secondary btnSearch" type="button">
+                        <i class="bi bi-search "></i>
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3"></div>
+                <p class="col-6" id="errorPhienDuBao" style="display:none; color: red;">Vui lòng nhập phiên dự báo</p>
+            </div>
+
+            <div class="form-group row mt-3">
+                <label for="txtHoTen" class="col-3 col-form-label text-right">Họ và tên</label>
+                <div class="col-6">
+                    <input type="text" class="form-control" id="txtHoTen">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3"></div>
+                <p class="col-6" id="errorHoTen" style="display:none; color: red;">Vui lòng nhâp họ và tên</p>
+            </div>
+            <div class="form-group row mt-3">
+                <label for="txtDienThoai" class="col-3 col-form-label text-right">Điện Thoại</label>
+                <div class="col-6">
+                    <input type="number" class="form-control" id="txtDienThoai">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3"></div>
+                <p class="col-6" id="errorDienThoai" style="display:none; color: red;">Vui lòng nhâp điện thoại</p>
+            </div>
+            <div class="form-group row mt-3 clearfix ">
+                <p class="form-group col-3 text-right">Thông Báo: </p>
+                <p class="col-6" id="btnDangKy"></p>
+            </div>
+            <div class="d-flex justify-content-center">
+                <button onclick="App.dangKiThamGia(); return false" type="submit" class="btn btn-success btnSubmit "
+                    id="btnDangKy">Đăng ký</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <!-- <script src="js/app.js"></script> -->
+    <script src="js/app2.js"></script>
+</body>
+
+</html>

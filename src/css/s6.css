@@ -1,6 +1,10 @@
+.header-title{
+    margin-bottom: 50px;
+    margin-top: 40px;
+}
 .row-item{
     display: flex;
-    margin-bottom: 20px;
+    margin-bottom: 17px;
     align-items: center;
 }
 .txt-lable{
@@ -8,8 +12,9 @@
 }
 .form-check{
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     margin-bottom: 10px;
+    margin-right: 160px;
 }
 
 .btn-group{
@@ -23,21 +28,35 @@
     margin-bottom: 15px;
 }
 
-header{
-    margin-top: 130px;
+.list-address-confirm{
+    margin-top: 15px;
+    line-height: 2;
 }
 
-header img{
-    width: 100%;
+.txt-listAddress{
+    font-size: 20px;
+    color: #000;
 }
+
+.list-group-item{
+    color: #000;
+}
+
 body {
-    background-image: url(../images/bg.png);
+    /* color: #fff; */
+    background-image: url(../images/background.jpg);
     background-repeat: no-repeat;
     background-size: cover;
+    backdrop-filter: blur(2px);
+    color: white;
+    height: 100vh;
+}
+.logo img {
+    width: 100%;
+    position: absolute;
+    top: 0;
 }
 
 .container{
-    background-image: url(../images/images.jpg);
-    background-repeat: no-repeat;
-    background-size: cover;
+    padding-top: 135px !important;
 }

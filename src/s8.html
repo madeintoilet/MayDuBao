@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kết quả phiên dự báo</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/56ce3b6cd1.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      background: url('images/background.jpg');
+      color: white;
+    }
+
+    .logo img {
+      width: 100%;
+    }
+
+    .container {
+      backdrop-filter: blur(2px);
+      height: calc(100vh - 137px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="logo"><img src="images/bg.png" alt=""></div>
+  <div class="container" style="margin-top: 3px;">
+    <h2 style="margin-left: -15px; margin-bottom: 50px; padding-left: 0;">Kết quả phiên dự báo</h2>
+    <div class="row">
+      <form onsubmit="">
+        <div class="form-group row">
+          <label for="maPhienDuBao" class="col-sm-3 col-form-label" style="font-size: medium; margin: 10px 0;">Mã phiên
+            dự báo: </label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" id="maPhienDuBao" placeholder="Nhập Mã Phiên Dự Báo bạn muốn tìm">
+          </div>
+          <div class="col-sm-6">
+            <button class="btn btn-success mt-3" type="submit" id="timPhienDuBao"
+              onclick="App.layThongTinPhien(); return false;"><i class="fas fa-search fa-lg"></i></button>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-sm-3 col-form-label">Mô tả</label>
+          <div class="col-sm-9">
+            <p id="moTa"></p>
+            <!-- <p>Đây là mô tả của phiên dự báo. <br> Đây là mô tả của phiên dự báo. <br> Đây là mô tả của phiên dự báo.
+                  <br> Đây là mô tả của phiên dự báo. <br> </p> -->
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-sm-3 col-form-label">Thời hạn kết thúc nộp phiếu: </label>
+          <div class="col-sm-9">
+            <p id="thoiHanKetThucNopPhieu"></p>
+            <!-- <p>12:00, 12/07/2021</p> -->
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-sm-3 col-form-label">Thời hạn kết thúc: </label>
+          <div class="col-sm-9">
+            <p id="thoiHanKetThuc"></p>
+            <!-- <p>20:00, 12/07/2021</p> -->
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-sm-3 col-form-label">Kết quả cuối cùng: </label>
+          <div class="col-sm-9">
+            <p id="ketQuaCuoiCung"></p>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-sm-3 col-form-label">Tỷ lệ: </label>
+          <div class="col-sm-4">
+            <!-- <p>Anh <span style="color: red" >1 : 4 </span> Italia</p> -->
+            <p id="tyLe"></p>
+          </div>
+
+        </div>
+        <div class="form-group row">
+          <label class="col-sm-3 col-form-label">Trạng thái: </label>
+          <div class="col-sm-4">
+            <p id="trangThaiPhien"></p>
+            <!-- <p>Hoàn thành</p> -->
+          </div>
+        </div>
+      </form>
+      <button class="btn btn-danger" type="submit"><a href="/s9.html" style="color: white;">Quyết thưởng</a></button>
+      <button class="btn btn-danger mt-3" type="submit"><a href="/s9.html" style="color: white;">Trang Chủ</a></button>
+    </div>
+  </div>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/web3.min.js"></script>
+  <script src="js/truffle-contract.js"></script>
+  <script src="js/appV.js"></script>
+  <script src="js/form.js"></script>
+</body>
+<!-- <body>
+    <div class="container" style="margin-top: 3px;">
+      <h3 style="margin-left: -15px; margin-bottom: 50px; padding-left: 0; text-transform: uppercase;">Kết quả phiên dự báo</h3>
+      <div class="row">
+        <form onsubmit="App.vote(); return false;">
+          <div class="form-group row">
+            <label for="maPhienDuBao" class="col-sm-3 col-form-label" style="font-size: medium; margin: 10px 0;">Mã phiên
+              dự báo: </label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="maPhienDuBao" placeholder="Nhập Mã Phiên Dự Báo bạn muốn tìm">
+            </div>
+            <div class="col-sm-6">
+              <button class="btn btn-primary mt-3" type="submit"><i class="fas fa-search fa-lg"></i></button>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Mô tả</label>
+            <div class="col-sm-9">
+              <p>Đây là mô tả của phiên dự báo. <br> Đây là mô tả của phiên dự báo. <br> Đây là mô tả của phiên dự báo.
+                <br> Đây là mô tả của phiên dự báo. <br> </p>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Thời hạn kết thúc nộp phiếu: </label>
+            <div class="col-sm-9">
+              <p>12:00, 12/07/2021</p>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Thời hạn kết thúc: </label>
+            <div class="col-sm-9">
+              <p>20:00, 12/07/2021</p>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Kết quả cuối cùng: </label>
+            <div class="col-sm-9">
+              <p>Italia</p>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Tỷ lệ: </label>
+            <div class="col-sm-3">
+              <p>Anh 4 : Italia 1</p>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Trạng thái: </label>
+            <div class="col-sm-3">
+              <p>Hoàn thành</p>
+            </div>
+          </div>
+        </form>
+        <button class="btn btn-primary mt-3" type="submit">Tính thưởng</button>
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <script src="js/app.js"></script>
+  </body> -->
+
+</html>
