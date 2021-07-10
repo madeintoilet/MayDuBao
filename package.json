@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "truffle-hdwallet-provider": "^1.0.17"
+    "joi": "^17.4.0",
+    "truffle-hdwallet-provider": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/web3": "^1.0.20"
   }
 }
