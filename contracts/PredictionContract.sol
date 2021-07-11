@@ -108,6 +108,20 @@ contract DuBaoTuongLai {
         require(msg.sender == NguoiTao,'Ban khong co quyen truy cap');
         _;
     }
+
+    event DoiKhoTienThanhCong(address adDiaChiKhoTien, bool ThanhCong);
+
+    function ChuyenKhoTien(address adDiaChiKhoTien) public returns (bool bThanhCong) {
+        // Chi nguoi tao contract moi co quyen thuc hien thao tac nay
+        require(msg.sender == NguoiTao, "Ban khong co quyen thay doi dia chi Kho tien");
+
+        KhoTien = IERC20(adDiaChiKhoTien);
+        bThanhCong = true;
+
+        emit DoiKhoTienThanhCong(adDiaChiKhoTien, bThanhCong);
+
+        return bThanhCong;
+    }
     
     // Goi ham nay de tao phien du bao cho moi tran dau
     function TaoPhienDuBao(string memory strMoTaPhien,uint dtThoiHanKetThucNopPhieu, uint dtThoiHanKetThucPhien, uint16[] memory arrLuaChon) public KiemTraNguoiTaoGoiHam returns (bytes6 intMaPhienDuBao)  {
