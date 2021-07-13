@@ -429,7 +429,11 @@ $(function () {
   });
 
   setInterval(updateContractStatus, 5000);
-  setWeb3Provider();
+  // setWeb3Provider();
+
+  $("body").on("click", "#testConnectAddress", function () {
+    setWeb3Provider();
+  });
 });
 
 // ******************
@@ -473,15 +477,15 @@ $("body").on("click", "#btnConfirm", function () {
     alert("Bạn chưa kết nối ví");
   } else {
     listAddressConfirm.forEach((item) => {
-		console.log(item);
+      console.log(item);
       if (item.toLowerCase() === addressCf) {
-		  count++
+        count++;
       }
     });
-	if(count!==0){
-		alert("Bạn đã xác nhận kết quả thành công!");
-	}else{
-		alert("Địa chỉ ví này không được đăng ký xác nhận kết quả!");
-	}
+    if (count !== 0) {
+      alert("Bạn đã xác nhận kết quả thành công!");
+    } else {
+      alert("Địa chỉ ví này không được đăng ký xác nhận kết quả!");
+    }
   }
 });
